@@ -3,6 +3,7 @@ import { CardContainer } from './styles'
 
 type ColumnProps = {
   text: string
+  index: number
 }
 
 export const Card: React.FC<ColumnProps> = ({ text }) => {
