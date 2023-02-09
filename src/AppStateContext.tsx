@@ -1,6 +1,7 @@
 import React, { createContext, useReducer, useContext } from 'react'
 import { nanoid } from 'nanoid'
-import { findItemIndexById, overrideItemAtIndex } from './utils/arrayUtils'
+import { findItemIndexById, overrideItemAtIndex, moveItem } from './utils/arrayUtils'
+import { DragItem } from './DragItem'
 
 type Task = {
   id: string
@@ -13,6 +14,7 @@ type List = {
 }
 export type AppState = {
   lists: List[]
+  draggedItem: DragItem | undefined
 }
 type AppStateContextProps = {
   state: AppState
@@ -28,6 +30,38 @@ type Action =
       type: 'ADD_TASK'
       payload: { text: string; listId: string }
     }
+  | {
+      type: 'MOVE_LIST'
+      payload: {
+        dragIndex: number
+        hoverIndex: number
+      }
+    }
+  | {
+      type: 'SET_DRAGGED_ITEM'
+      payload: DragItem | undefined
+    }
+
+const appData: AppState = {
+  draggedItem: undefined,
+  lists: [
+    {
+      id: nanoid(),
+      text: 'To Do',
+      tasks: [{ id: '0', text: 'Generate app scaffold' }]
+    },
+    {
+      id: nanoid(),
+      text: 'In Progress',
+      tasks: [{ id: 'c2', text: 'Learn Typescript' }]
+    },
+    {
+      id: nanoid(),
+      text: 'Done',
+      tasks: [{ id: 'c3', text: 'Begin to use static typing' }]
+    }
+  ]
+}
 
 const appStateReducer = (state: AppState, action: Action): AppState => {
   switch (action.type) {
@@ -50,30 +84,20 @@ const appStateReducer = (state: AppState, action: Action): AppState => {
         lists: overrideItemAtIndex(state.lists, updatedTargetList, targetListIndex)
       }
     }
+    case 'MOVE_LIST': {
+      const { dragIndex, hoverIndex } = action.payload
+      return {
+        ...state,
+        lists: moveItem(state.lists, dragIndex, hoverIndex)
+      }
+    }
+    case 'SET_DRAGGED_ITEM': {
+      return { ...state, draggedItem: action.payload }
+    }
     default: {
       return state
     }
   }
-}
-
-const appData: AppState = {
-  lists: [
-    {
-      id: '0',
-      text: 'To Do',
-      tasks: [{ id: '0', text: 'Generate app scaffold' }]
-    },
-    {
-      id: '1',
-      text: 'In PRogress',
-      tasks: [{ id: 'c2', text: 'Learn Typescript' }]
-    },
-    {
-      id: '2',
-      text: 'Done',
-      tasks: [{ id: 'c3', text: 'Begin to use static typing' }]
-    }
-  ]
 }
 
 export const useAppState = () => {
